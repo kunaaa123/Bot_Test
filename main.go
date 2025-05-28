@@ -16,7 +16,7 @@ type DeploymentInfo struct {
 	Deployer    string `json:"deployer"`
 	ServiceName string `json:"serviceName"`
 	CommitMsg   string `json:"commitMsg"`
-	RepoURL     string `json:"repoUrl"` // เพิ่ม field นี้
+	RepoURL     string `json:"repoUrl"`
 }
 
 type GitCommitInfo struct {
@@ -25,7 +25,7 @@ type GitCommitInfo struct {
 	Environment string   `json:"environment"`
 	ServiceName string   `json:"service_name"`
 	Deployer    string   `json:"deployer"`
-	RepoURL     string   `json:"repo_url"` // เพิ่ม field นี้
+	RepoURL     string   `json:"repo_url"`
 }
 
 type GitHubPushEvent struct {
@@ -43,34 +43,34 @@ type GitHubPushEvent struct {
 }
 
 func sendToLark(info DeploymentInfo) error {
-	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5" // ใส่ URL ของ Lark webhook ที่นี่
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "🚀 Backend Deployment Status",
+					"content": "Backend Deployment Status",
 					"tag":     "plain_text",
 				},
-				"template": "indigo", // เปลี่ยนสีให้สวยงาม
+				"template": "indigo",
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("🔹 **Environment:** %s\n👤 **Deployer:** %s\n🌟 **Service:** %s",
+						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
 							info.ENV, info.Deployer, info.ServiceName),
 						"tag": "lark_md",
 					},
 				},
 				{
-					"tag": "hr", // เพิ่มเส้นคั่น
+					"tag": "hr",
 				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": "📝 **Latest Changes:**\n" + info.CommitMsg,
+						"content": "Latest Changes:\n" + info.CommitMsg,
 						"tag":     "lark_md",
 					},
 				},
@@ -78,11 +78,11 @@ func sendToLark(info DeploymentInfo) error {
 					"tag": "hr",
 				},
 				{
-					"tag": "note", // เพิ่มโน้ตเวลา
+					"tag": "note",
 					"elements": []map[string]interface{}{
 						{
 							"tag":     "plain_text",
-							"content": fmt.Sprintf("🕒 Deployed at: %s", time.Now().Format("2006-01-02 15:04:05")),
+							"content": fmt.Sprintf("Deployed at: %s", time.Now().Format("2006-01-02 15:04:05")),
 						},
 					},
 				},
@@ -92,7 +92,7 @@ func sendToLark(info DeploymentInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Repository 🔍",
+								"content": "View Repository",
 								"tag":     "plain_text",
 							},
 							"type": "primary",
@@ -101,7 +101,7 @@ func sendToLark(info DeploymentInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Documentation 📚",
+								"content": "View Documentation",
 								"tag":     "plain_text",
 							},
 							"type": "default",
@@ -134,7 +134,6 @@ func sendToLark(info DeploymentInfo) error {
 }
 
 func sendGitDeploymentToLark(commit GitCommitInfo) error {
-	// แก้ไข URL - ตรวจสอบให้แน่ใจว่าไม่มีตัวอักษรหายไป
 	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 
 	payload := map[string]interface{}{
@@ -142,7 +141,7 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "📊 Backend Deployment", // เพิ่ม emoji และแก้ให้ตรงกัน
+					"content": "Backend Deployment",
 					"tag":     "plain_text",
 				},
 				"template": "blue",
@@ -151,7 +150,7 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**ENV:** %s\n**Deployer:** %s\n**Service:** %s",
+						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
 							commit.Environment, commit.Deployer, commit.ServiceName),
 						"tag": "lark_md",
 					},
@@ -159,7 +158,7 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**Commit Messages:**\n%s", commit.Message),
+						"content": fmt.Sprintf("Commit Messages:\n%s", commit.Message),
 						"tag":     "lark_md",
 					},
 				},
@@ -169,11 +168,11 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Repository 🔍",
+								"content": "View Repository",
 								"tag":     "plain_text",
 							},
 							"type": "primary",
-							"url":  "https://github.com/kunaaa123/Bot_Test",
+							"url":  commit.RepoURL,
 						},
 					},
 				},
@@ -194,7 +193,6 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 	}
 	defer resp.Body.Close()
 
-	// เพิ่มการอ่าน response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response: %v", err)
@@ -207,14 +205,12 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received webhook from GitHub")
 
-	// ตรวจสอบ event type
 	eventType := r.Header.Get("X-GitHub-Event")
 	if eventType != "push" {
 		http.Error(w, "Unsupported event type", http.StatusBadRequest)
 		return
 	}
 
-	// อ่านและ parse ข้อมูล
 	var pushEvent GitHubPushEvent
 	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
 		log.Printf("Error decoding webhook: %v", err)
@@ -222,7 +218,6 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// สร้างข้อมูลสำหรับส่งไป Lark
 	commitMessages := ""
 	for _, commit := range pushEvent.Commits {
 		commitMessages += "- " + commit.Message + "\n"
@@ -233,9 +228,9 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		Environment: "DEV",
 		ServiceName: pushEvent.Repository.Name,
 		Deployer:    pushEvent.Commits[0].Author.Name,
+		RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 	}
 
-	// ส่งไป Lark
 	if err := sendGitDeploymentToLark(info); err != nil {
 		log.Printf("Error sending to Lark: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -253,9 +248,9 @@ func main() {
 			Deployer:    "rutchanai",
 			ServiceName: "tgth-backend-main",
 			CommitMsg:   "feat: backend deployment structure",
+			RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 		}
 
-		// ส่งข้อมูลไปยัง Lark
 		if err := sendToLark(info); err != nil {
 			log.Printf("Failed to send to Lark: %v", err)
 		}
@@ -264,7 +259,6 @@ func main() {
 		json.NewEncoder(w).Encode(info)
 	})
 
-	// เพิ่ม endpoint สำหรับทดสอบ
 	http.HandleFunc("/test-notification", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -276,6 +270,7 @@ func main() {
 			Deployer:    "test-user",
 			ServiceName: "test-service",
 			CommitMsg:   "test: testing notification system",
+			RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 		}
 
 		if err := sendToLark(info); err != nil {
@@ -290,7 +285,6 @@ func main() {
 		})
 	})
 
-	// เพิ่ม endpoint สำหรับทดสอบแบบกำหนดข้อมูลเอง
 	http.HandleFunc("/custom-notification", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
