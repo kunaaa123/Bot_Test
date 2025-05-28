@@ -35,25 +35,60 @@ func sendToLark(info DeploymentInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "Backend Deployment Status",
+					"content": "⚡ Backend Deployment",
 					"tag":     "plain_text",
 				},
-				"template": "blue",
+				"template": "indigo",
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
-					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
-							info.ENV, info.Deployer, info.ServiceName),
-						"tag": "lark_md",
+					"fields": []map[string]interface{}{
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"content": fmt.Sprintf("🚀 **ENV**\n%s", info.ENV),
+								"tag":     "lark_md",
+							},
+						},
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"content": fmt.Sprintf("👨‍💻 **Deployer**\n%s", info.Deployer),
+								"tag":     "lark_md",
+							},
+						},
 					},
 				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Changes:\n%s", info.CommitMsg),
+						"content": fmt.Sprintf("🔧 **Service**\n%s", info.ServiceName),
 						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "hr",
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("📝 **Commit Messages**\n%s", info.CommitMsg),
+						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "action",
+					"actions": []map[string]interface{}{
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "🔍 View Repository",
+								"tag":     "plain_text",
+							},
+							"type": "primary",
+							"url":  "https://github.com/YOUR_REPO_URL",
+						},
 					},
 				},
 			},
