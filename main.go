@@ -93,7 +93,8 @@ func sendToLark(info DeploymentInfo) error {
 }
 
 func sendGitDeploymentToLark(commit GitCommitInfo) error {
-	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f"
+	// แก้ไข URL - ตรวจสอบให้แน่ใจว่าไม่มีตัวอักษรหายไป
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
@@ -109,16 +110,9 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**🌟 ENV**\n%s\n\n**👨‍💻 Deployer**\n%s\n\n**🚀 Service**\n%s",
+						"content": fmt.Sprintf("**ENV:** %s\n**Deployer:** %s\n**Service:** %s",
 							commit.Environment, commit.Deployer, commit.ServiceName),
 						"tag": "lark_md",
-					},
-				},
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"content": "**📝 Commit Messages**\n" + commit.Message,
-						"tag":     "lark_md",
 					},
 				},
 			},
@@ -129,6 +123,8 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("Sending payload to Lark: %s", string(payloadBytes))
 
 	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
