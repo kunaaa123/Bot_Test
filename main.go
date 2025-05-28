@@ -13,13 +13,11 @@ type DeploymentInfo struct {
 	Deployer    string `json:"deployer"`
 	ServiceName string `json:"serviceName"`
 	CommitMsg   string `json:"commitMsg"`
-	RepoURL     string `json:"repoUrl"` // เพิ่ม field นี้
 }
 
 type GitHubPushEvent struct {
 	Repository struct {
 		Name string `json:"name"`
-		URL  string `json:"html_url"` // เพิ่ม field นี้
 	} `json:"repository"`
 	Commits []struct {
 		Message string `json:"message"`
@@ -37,60 +35,25 @@ func sendToLark(info DeploymentInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "⚡ Backend Deployment",
+					"content": "Backend Deployment Status",
 					"tag":     "plain_text",
 				},
-				"template": "indigo",
+				"template": "blue",
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
-					"fields": []map[string]interface{}{
-						{
-							"is_short": true,
-							"text": map[string]interface{}{
-								"content": fmt.Sprintf("🚀 **ENV**\n%s", info.ENV),
-								"tag":     "lark_md",
-							},
-						},
-						{
-							"is_short": true,
-							"text": map[string]interface{}{
-								"content": fmt.Sprintf("👨‍💻 **Deployer**\n%s", info.Deployer),
-								"tag":     "lark_md",
-							},
-						},
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
+							info.ENV, info.Deployer, info.ServiceName),
+						"tag": "lark_md",
 					},
 				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("🔧 **Service**\n%s", info.ServiceName),
+						"content": fmt.Sprintf("Changes:\n%s", info.CommitMsg),
 						"tag":     "lark_md",
-					},
-				},
-				{
-					"tag": "hr",
-				},
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"content": fmt.Sprintf("📝 **Commit Messages**\n%s", info.CommitMsg),
-						"tag":     "lark_md",
-					},
-				},
-				{
-					"tag": "action",
-					"actions": []map[string]interface{}{
-						{
-							"tag": "button",
-							"text": map[string]interface{}{
-								"content": "🔍 View Repository",
-								"tag":     "plain_text",
-							},
-							"type": "primary",
-							"url":  "https://github.com/YOUR_REPO_URL",
-						},
 					},
 				},
 			},
@@ -133,7 +96,6 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		Deployer:    pushEvent.Commits[0].Author.Name,
 		ServiceName: pushEvent.Repository.Name,
 		CommitMsg:   commitMsg,
-		RepoURL:     "https://github.com/YOUR_REPO_URL", // เพิ่มค่า RepoURL ที่นี่
 	}
 
 	if err := sendToLark(info); err != nil {
