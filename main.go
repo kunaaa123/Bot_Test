@@ -15,6 +15,7 @@ type DeploymentInfo struct {
 	Deployer    string `json:"deployer"`
 	ServiceName string `json:"serviceName"`
 	CommitMsg   string `json:"commitMsg"`
+	RepoURL     string `json:"repoUrl"` // เพิ่ม field นี้
 }
 
 type GitCommitInfo struct {
@@ -23,6 +24,7 @@ type GitCommitInfo struct {
 	Environment string   `json:"environment"`
 	ServiceName string   `json:"service_name"`
 	Deployer    string   `json:"deployer"`
+	RepoURL     string   `json:"repo_url"` // เพิ่ม field นี้
 }
 
 type GitHubPushEvent struct {
@@ -66,6 +68,20 @@ func sendToLark(info DeploymentInfo) error {
 					"text": map[string]interface{}{
 						"content": fmt.Sprintf("**Commit Messages:**\n%s", info.CommitMsg),
 						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "action",
+					"actions": []map[string]interface{}{
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "View Repository 🔍",
+								"tag":     "plain_text",
+							},
+							"type": "primary",
+							"url":  "https://github.com/kunaaa123/Bot_Test",
+						},
 					},
 				},
 			},
@@ -113,6 +129,27 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 						"content": fmt.Sprintf("**ENV:** %s\n**Deployer:** %s\n**Service:** %s",
 							commit.Environment, commit.Deployer, commit.ServiceName),
 						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("**Commit Messages:**\n%s", commit.Message),
+						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "action",
+					"actions": []map[string]interface{}{
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "View Repository 🔍",
+								"tag":     "plain_text",
+							},
+							"type": "primary",
+							"url":  "https://github.com/kunaaa123/Bot_Test",
+						},
 					},
 				},
 			},
@@ -263,6 +300,3 @@ func main() {
 	fmt.Printf("Server running on port %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
-
-// หลังจากตั้งค่า authtoken แล้ว ลองรัน
-// ngrok http 8080
