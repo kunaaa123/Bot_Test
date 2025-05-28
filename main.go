@@ -4,22 +4,27 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
-const webhookURL = "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
-
-// Core data structures
 type DeploymentInfo struct {
 	ENV         string `json:"env"`
 	Deployer    string `json:"deployer"`
 	ServiceName string `json:"serviceName"`
 	CommitMsg   string `json:"commitMsg"`
 	RepoURL     string `json:"repoUrl"`
+}
+
+type GitCommitInfo struct {
+	Message     string `json:"message"`
+	Environment string `json:"environment"`
+	ServiceName string `json:"service_name"`
+	Deployer    string `json:"deployer"`
+	RepoURL     string `json:"repo_url"`
 }
 
 type GitHubPushEvent struct {
@@ -34,107 +39,108 @@ type GitHubPushEvent struct {
 	} `json:"commits"`
 }
 
-// Helper functions
-func getEnvironmentStyle(env string) (color string, emoji string) {
-	env = strings.ToUpper(env)
-	switch env {
+func getEnvironmentColor(env string) string {
+	switch strings.ToUpper(env) {
 	case "PROD", "PRODUCTION":
-		return "red", "🚀"
+		return "red"
 	case "STAGING", "STAGE":
-		return "orange", "🔄"
+		return "orange"
 	case "DEV", "DEVELOPMENT":
-		return "blue", "⚡"
+		return "blue"
 	case "TEST":
-		return "green", "🧪"
+		return "green"
 	default:
-		return "grey", "📦"
+		return "grey"
 	}
 }
 
-// Core notification functions
-func sendLarkNotification(title string, color string, elements []map[string]interface{}) error {
+func sendToLark(info DeploymentInfo) error {
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
+
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
-				"title":    map[string]interface{}{"content": title, "tag": "plain_text"},
-				"template": color,
+				"title": map[string]interface{}{
+					"content": "Deployment Notification",
+					"tag":     "plain_text",
+				},
+				"template": getEnvironmentColor(info.ENV),
 			},
-			"elements": elements,
-		},
-	}
-
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("error marshaling payload: %v", err)
-	}
-
-	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		return fmt.Errorf("error sending to Lark: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if _, err := io.ReadAll(resp.Body); err != nil {
-		return fmt.Errorf("error reading response: %v", err)
-	}
-
-	return nil
-}
-
-func handleDeployment(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var info DeploymentInfo
-	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	color, emoji := getEnvironmentStyle(info.ENV)
-	elements := []map[string]interface{}{
-		{
-			"tag": "div",
-			"text": map[string]interface{}{
-				"content": fmt.Sprintf("**Environment:** `%s`\n**Deployer:** `%s`\n**Service:** `%s`",
-					info.ENV, info.Deployer, info.ServiceName),
-				"tag": "lark_md",
-			},
-		},
-		{
-			"tag": "div",
-			"text": map[string]interface{}{
-				"content": fmt.Sprintf("**Changes:**\n```\n%s\n```", info.CommitMsg),
-				"tag":     "lark_md",
-			},
-		},
-		{
-			"tag": "action",
-			"actions": []map[string]interface{}{
+			"elements": []map[string]interface{}{
 				{
-					"tag":  "button",
-					"text": map[string]interface{}{"content": "View Repository", "tag": "plain_text"},
-					"type": "primary",
-					"url":  info.RepoURL,
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("Environment: %s\nService: %s\nDeployer: %s\nTime: %s",
+							info.ENV, info.ServiceName, info.Deployer, time.Now().Format("2006-01-02 15:04:05")),
+						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("Changes: %s", info.CommitMsg),
+						"tag":     "lark_md",
+					},
 				},
 			},
 		},
 	}
 
-	if err := sendLarkNotification(fmt.Sprintf("%s Deployment Update", emoji), color, elements); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	payloadBytes, _ := json.Marshal(payload)
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func sendGitDeploymentToLark(commit GitCommitInfo) error {
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
+
+	payload := map[string]interface{}{
+		"msg_type": "interactive",
+		"card": map[string]interface{}{
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"content": fmt.Sprintf("Git Deploy - %s", commit.Environment),
+					"tag":     "plain_text",
+				},
+				"template": getEnvironmentColor(commit.Environment),
+			},
+			"elements": []map[string]interface{}{
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("Service: %s\nDeveloper: %s\nTime: %s",
+							commit.ServiceName, commit.Deployer, time.Now().Format("2006-01-02 15:04:05")),
+						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("Commits:\n%s", strings.TrimSpace(commit.Message)),
+						"tag":     "lark_md",
+					},
+				},
+			},
+		},
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	payloadBytes, _ := json.Marshal(payload)
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
 }
 
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("X-GitHub-Event") != "push" {
+	eventType := r.Header.Get("X-GitHub-Event")
+	if eventType != "push" {
 		http.Error(w, "Unsupported event type", http.StatusBadRequest)
 		return
 	}
@@ -147,42 +153,48 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	commitMessages := ""
 	for _, commit := range pushEvent.Commits {
-		commitMessages += "• " + commit.Message + "\n"
+		commitMessages += commit.Message + "\n"
 	}
 
-	color, emoji := getEnvironmentStyle("DEV")
-	elements := []map[string]interface{}{
-		{
-			"tag": "div",
-			"text": map[string]interface{}{
-				"content": fmt.Sprintf("**Repository:** `%s`\n**Author:** `%s`\n**Commits:**\n```\n%s```",
-					pushEvent.Repository.Name,
-					pushEvent.Commits[0].Author.Name,
-					commitMessages),
-				"tag": "lark_md",
-			},
-		},
+	info := GitCommitInfo{
+		Message:     commitMessages,
+		Environment: "DEV",
+		ServiceName: pushEvent.Repository.Name,
+		Deployer:    pushEvent.Commits[0].Author.Name,
+		RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 	}
 
-	if err := sendLarkNotification(fmt.Sprintf("%s New Commits", emoji), color, elements); err != nil {
+	if err := sendGitDeploymentToLark(info); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 func main() {
-	http.HandleFunc("/deploy", handleDeployment)
-	http.HandleFunc("/webhook", handleGitHubWebhook)
+	http.HandleFunc("/deployment-info", func(w http.ResponseWriter, r *http.Request) {
+		info := DeploymentInfo{
+			ENV:         "DEV",
+			Deployer:    "rutchanai",
+			ServiceName: "tgth-backend-main",
+			CommitMsg:   "Latest deployment",
+			RepoURL:     "https://github.com/kunaaa123/Bot_Test",
+		}
+
+		sendToLark(info)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(info)
+	})
+
+	http.HandleFunc("/git-webhook", handleGitHubWebhook)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("Server running on port %s", port)
+	fmt.Printf("Server running on port %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
-
-//tesr
