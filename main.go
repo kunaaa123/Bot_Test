@@ -47,7 +47,7 @@ func sendToLark(info DeploymentInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "📊 backend Deployment",
+					"content": "📊 Backend Deployment", // แก้จาก Frontend เป็น Backend
 					"tag":     "plain_text",
 				},
 				"template": "blue",
@@ -101,7 +101,7 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "backend Deployment",
+					"content": "📊 Backend Deployment", // เพิ่ม emoji และแก้ให้ตรงกัน
 					"tag":     "plain_text",
 				},
 				"template": "blue",
