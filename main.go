@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type DeploymentInfo struct {
@@ -49,25 +50,40 @@ func sendToLark(info DeploymentInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "📊 Backend Deployment", // แก้จาก Frontend เป็น Backend
+					"content": "🚀 Backend Deployment Status",
 					"tag":     "plain_text",
 				},
-				"template": "blue",
+				"template": "indigo", // เปลี่ยนสีให้สวยงาม
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**ENV:** %s\n**Deployer:** %s\n**Service:** %s",
+						"content": fmt.Sprintf("🔹 **Environment:** %s\n👤 **Deployer:** %s\n🌟 **Service:** %s",
 							info.ENV, info.Deployer, info.ServiceName),
 						"tag": "lark_md",
 					},
 				},
 				{
+					"tag": "hr", // เพิ่มเส้นคั่น
+				},
+				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**Commit Messages:**\n%s", info.CommitMsg),
+						"content": "📝 **Latest Changes:**\n" + info.CommitMsg,
 						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "hr",
+				},
+				{
+					"tag": "note", // เพิ่มโน้ตเวลา
+					"elements": []map[string]interface{}{
+						{
+							"tag":     "plain_text",
+							"content": fmt.Sprintf("🕒 Deployed at: %s", time.Now().Format("2006-01-02 15:04:05")),
+						},
 					},
 				},
 				{
@@ -80,7 +96,16 @@ func sendToLark(info DeploymentInfo) error {
 								"tag":     "plain_text",
 							},
 							"type": "primary",
-							"url":  "https://github.com/kunaaa123/Bot_Test",
+							"url":  info.RepoURL,
+						},
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "View Documentation 📚",
+								"tag":     "plain_text",
+							},
+							"type": "default",
+							"url":  "https://github.com/kunaaa123/Bot_Test/wiki",
 						},
 					},
 				},
