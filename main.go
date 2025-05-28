@@ -519,3 +519,5 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
+
+// Note: Make sure to replace the webhook URL with your actual Lark webhook URL.
