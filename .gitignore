@@ -1,0 +1,15 @@
+# Binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output directories
+/bin
+/pkg
+
+# Go specific
+*.test
+*.out
+go.work
