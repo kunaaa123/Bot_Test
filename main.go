@@ -40,14 +40,14 @@ type GitHubPushEvent struct {
 }
 
 func sendToLark(info DeploymentInfo) error {
-	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f"
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5" // ใส่ URL ของ Lark webhook ที่นี่
 
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "Backend Deployment Status",
+					"content": "📊 Frontend Deployment",
 					"tag":     "plain_text",
 				},
 				"template": "blue",
@@ -64,7 +64,7 @@ func sendToLark(info DeploymentInfo) error {
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("**Commit Message:**\n%s", info.CommitMsg),
+						"content": fmt.Sprintf("**Commit Messages:**\n%s", info.CommitMsg),
 						"tag":     "lark_md",
 					},
 				},
@@ -74,16 +74,15 @@ func sendToLark(info DeploymentInfo) error {
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshaling payload: %v", err)
 	}
 
 	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return err
+		return fmt.Errorf("error sending to Lark: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// เพิ่มการอ่าน response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response: %v", err)
@@ -148,6 +147,8 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 }
 
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received webhook from GitHub")
+
 	// ตรวจสอบ event type
 	eventType := r.Header.Get("X-GitHub-Event")
 	if eventType != "push" {
@@ -158,6 +159,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	// อ่านและ parse ข้อมูล
 	var pushEvent GitHubPushEvent
 	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
+		log.Printf("Error decoding webhook: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -183,9 +185,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "webhook processed successfully",
-	})
+	w.Write([]byte("Webhook processed successfully"))
 }
 
 func main() {
