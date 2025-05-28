@@ -129,3 +129,6 @@ func main() {
 	log.Printf("Server running on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
+
+//test
+// To test this code, you can use a tool like Postman or curl to send a POST request to http://localhost:8080/webhook
