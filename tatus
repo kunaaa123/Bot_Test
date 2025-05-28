@@ -1,0 +1,22 @@
+[33me5622de[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m up ของ 1
+[33m43fec08[m feat: test webhook integration
+[33md593d12[m feat:test template
+[33m2f547d4[m feat: test webhook integration
+[33mffcbc79[m style: update lark card design
+[33m7e4e0f3[m feat: test View Repository
+[33m5bc5d0a[m style: update lark card design
+[33m8e9273a[m style: update lark card design
+[33m5738476[m test: Code Cleanup
+[33m9484df7[m feat: test webhook integration
+[33m77a72bd[m feat:test template
+[33md919637[m feat: test webhook integration
+[33m36cd9ff[m feat: test webhook integration
+[33mc14bd73[m test: verify webhook connection
+[33mf3f9070[m test: verify lark notification
+[33mb7c0a47[m test: verify lark notification
+[33m9c64e74[m test: verify lark notification
+[33mc950ebc[m test: verify webhook connection
+[33mb59b0e8[m test: verify webhook integration
+[33mc0eb5cf[m feat: test webhook integration
+[33m6ad3c1d[m[33m ([m[1;31morigin/feature/new-deployment-info[m[33m, [m[1;32mfeature/new-deployment-info[m[33m)[m feat: add new deployment information
+[33m21f6e4e[m feat: initial backend deployment setup
