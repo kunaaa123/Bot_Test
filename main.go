@@ -25,6 +25,20 @@ type GitCommitInfo struct {
 	Deployer    string   `json:"deployer"`
 }
 
+type GitHubPushEvent struct {
+	Ref        string `json:"ref"`
+	Repository struct {
+		Name string `json:"name"`
+	} `json:"repository"`
+	Commits []struct {
+		Message string `json:"message"`
+		Author  struct {
+			Name  string `json:"name"`
+			Email string `json:"email"`
+		} `json:"author"`
+	} `json:"commits"`
+}
+
 func sendToLark(info DeploymentInfo) error {
 	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f"
 
@@ -133,6 +147,47 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 	return nil
 }
 
+func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
+	// ตรวจสอบ event type
+	eventType := r.Header.Get("X-GitHub-Event")
+	if eventType != "push" {
+		http.Error(w, "Unsupported event type", http.StatusBadRequest)
+		return
+	}
+
+	// อ่านและ parse ข้อมูล
+	var pushEvent GitHubPushEvent
+	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// สร้างข้อมูลสำหรับส่งไป Lark
+	commitMessages := ""
+	for _, commit := range pushEvent.Commits {
+		commitMessages += "- " + commit.Message + "\n"
+	}
+
+	info := GitCommitInfo{
+		Message:     commitMessages,
+		Environment: "DEV",
+		ServiceName: pushEvent.Repository.Name,
+		Deployer:    pushEvent.Commits[0].Author.Name,
+	}
+
+	// ส่งไป Lark
+	if err := sendGitDeploymentToLark(info); err != nil {
+		log.Printf("Error sending to Lark: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "webhook processed successfully",
+	})
+}
+
 func main() {
 	http.HandleFunc("/deployment-info", func(w http.ResponseWriter, r *http.Request) {
 		info := DeploymentInfo{
@@ -202,29 +257,7 @@ func main() {
 		})
 	})
 
-	http.HandleFunc("/git-webhook", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var gitInfo GitCommitInfo
-		if err := json.NewDecoder(r.Body).Decode(&gitInfo); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		if err := sendGitDeploymentToLark(gitInfo); err != nil {
-			log.Printf("Error sending to Lark: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "git deployment notification sent successfully",
-		})
-	})
+	http.HandleFunc("/git-webhook", handleGitHubWebhook)
 
 	port := os.Getenv("PORT")
 	if port == "" {
