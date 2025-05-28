@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -42,24 +43,57 @@ type GitHubPushEvent struct {
 	} `json:"commits"`
 }
 
+func getEnvironmentColor(env string) string {
+	switch strings.ToUpper(env) {
+	case "PROD", "PRODUCTION":
+		return "red"
+	case "STAGING", "STAGE":
+		return "orange"
+	case "DEV", "DEVELOPMENT":
+		return "blue"
+	case "TEST":
+		return "green"
+	default:
+		return "grey"
+	}
+}
+
+func getEnvironmentEmoji(env string) string {
+	switch strings.ToUpper(env) {
+	case "PROD", "PRODUCTION":
+		return "🚀"
+	case "STAGING", "STAGE":
+		return "🔄"
+	case "DEV", "DEVELOPMENT":
+		return "⚡"
+	case "TEST":
+		return "🧪"
+	default:
+		return "📦"
+	}
+}
+
 func sendToLark(info DeploymentInfo) error {
 	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 
+	envColor := getEnvironmentColor(info.ENV)
+	envEmoji := getEnvironmentEmoji(info.ENV)
+	
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "Backend Deployment Status",
+					"content": fmt.Sprintf("%s Backend Deployment Success", envEmoji),
 					"tag":     "plain_text",
 				},
-				"template": "indigo",
+				"template": envColor,
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
+						"content": fmt.Sprintf("**🌍 Environment:** `%s`\n**👤 Deployer:** `%s`\n**⚙️ Service:** `%s`",
 							info.ENV, info.Deployer, info.ServiceName),
 						"tag": "lark_md",
 					},
@@ -70,7 +104,7 @@ func sendToLark(info DeploymentInfo) error {
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": "Latest Changes:\n" + info.CommitMsg,
+						"content": fmt.Sprintf("**📝 Latest Changes:**\n```\n%s\n```", info.CommitMsg),
 						"tag":     "lark_md",
 					},
 				},
@@ -78,11 +112,19 @@ func sendToLark(info DeploymentInfo) error {
 					"tag": "hr",
 				},
 				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("**⏰ Deployment Time:** %s\n**✅ Status:** Successfully Deployed", 
+							time.Now().Format("2006-01-02 15:04:05 MST")),
+						"tag": "lark_md",
+					},
+				},
+				{
 					"tag": "note",
 					"elements": []map[string]interface{}{
 						{
 							"tag":     "plain_text",
-							"content": fmt.Sprintf("Deployed at: %s", time.Now().Format("2006-01-02 15:04:05")),
+							"content": "🎉 Deployment completed successfully! All systems are operational.",
 						},
 					},
 				},
@@ -92,7 +134,7 @@ func sendToLark(info DeploymentInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Repository",
+								"content": "🔗 View Repository",
 								"tag":     "plain_text",
 							},
 							"type": "primary",
@@ -101,11 +143,20 @@ func sendToLark(info DeploymentInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Documentation",
+								"content": "📚 Documentation",
 								"tag":     "plain_text",
 							},
 							"type": "default",
 							"url":  "https://github.com/kunaaa123/Bot_Test/wiki",
+						},
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "📊 Monitoring",
+								"tag":     "plain_text",
+							},
+							"type": "default",
+							"url":  "#",
 						},
 					},
 				},
@@ -136,30 +187,58 @@ func sendToLark(info DeploymentInfo) error {
 func sendGitDeploymentToLark(commit GitCommitInfo) error {
 	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 
+	envColor := getEnvironmentColor(commit.Environment)
+	envEmoji := getEnvironmentEmoji(commit.Environment)
+
+	// Count commits
+	commitCount := strings.Count(commit.Message, "- ") 
+	if commitCount == 0 && commit.Message != "" {
+		commitCount = 1
+	}
+
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "Backend Deployment",
+					"content": fmt.Sprintf("🚀 New Deployment - %s", strings.ToUpper(commit.Environment)),
 					"tag":     "plain_text",
 				},
-				"template": "blue",
+				"template": envColor,
 			},
 			"elements": []map[string]interface{}{
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Environment: %s\nDeployer: %s\nService: %s",
-							commit.Environment, commit.Deployer, commit.ServiceName),
+						"content": fmt.Sprintf("**%s Environment:** `%s`\n**👨‍💻 Developer:** `%s`\n**📦 Service:** `%s`\n**📊 Commits:** `%d`",
+							envEmoji, commit.Environment, commit.Deployer, commit.ServiceName, commitCount),
 						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "hr",
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("**📋 Commit Messages:**\n```\n%s```", strings.TrimSpace(commit.Message)),
+						"tag":     "lark_md",
 					},
 				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Commit Messages:\n%s", commit.Message),
-						"tag":     "lark_md",
+						"content": fmt.Sprintf("**⏰ Deployed at:** %s", time.Now().Format("2006-01-02 15:04:05 MST")),
+						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "note",
+					"elements": []map[string]interface{}{
+						{
+							"tag":     "plain_text",
+							"content": fmt.Sprintf("🎯 Auto-deployment triggered by Git push to %s environment", commit.Environment),
+						},
 					},
 				},
 				{
@@ -168,11 +247,20 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View Repository",
+								"content": "🔗 View Repository",
 								"tag":     "plain_text",
 							},
 							"type": "primary",
 							"url":  commit.RepoURL,
+						},
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "🔍 View Changes",
+								"tag":     "plain_text",
+							},
+							"type": "default",
+							"url":  fmt.Sprintf("%s/commits", commit.RepoURL),
 						},
 					},
 				},
@@ -185,7 +273,7 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 		return err
 	}
 
-	log.Printf("Sending payload to Lark: %s", string(payloadBytes))
+	log.Printf("Sending beautiful payload to Lark: %s", string(payloadBytes))
 
 	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
@@ -202,8 +290,90 @@ func sendGitDeploymentToLark(commit GitCommitInfo) error {
 	return nil
 }
 
+func sendErrorNotification(errorMsg string, service string) error {
+	webhookURL := "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
+
+	payload := map[string]interface{}{
+		"msg_type": "interactive",
+		"card": map[string]interface{}{
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"content": "❌ Deployment Failed",
+					"tag":     "plain_text",
+				},
+				"template": "red",
+			},
+			"elements": []map[string]interface{}{
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("**⚠️ Service:** `%s`\n**🕐 Failed at:** %s", 
+							service, time.Now().Format("2006-01-02 15:04:05 MST")),
+						"tag": "lark_md",
+					},
+				},
+				{
+					"tag": "hr",
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("**🐛 Error Details:**\n```\n%s\n```", errorMsg),
+						"tag":     "lark_md",
+					},
+				},
+				{
+					"tag": "note",
+					"elements": []map[string]interface{}{
+						{
+							"tag":     "plain_text",
+							"content": "🚨 Immediate attention required! Please check the deployment logs.",
+						},
+					},
+				},
+				{
+					"tag": "action",
+					"actions": []map[string]interface{}{
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "🔧 View Logs",
+								"tag":     "plain_text",
+							},
+							"type": "danger",
+							"url":  "#",
+						},
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "📞 Contact Support",
+								"tag":     "plain_text",
+							},
+							"type": "default",
+							"url":  "#",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
+}
+
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Received webhook from GitHub")
+	log.Printf("🎯 Received webhook from GitHub")
 
 	eventType := r.Header.Get("X-GitHub-Event")
 	if eventType != "push" {
@@ -213,14 +383,15 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	var pushEvent GitHubPushEvent
 	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
-		log.Printf("Error decoding webhook: %v", err)
+		log.Printf("❌ Error decoding webhook: %v", err)
+		sendErrorNotification(err.Error(), "webhook-handler")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	commitMessages := ""
 	for _, commit := range pushEvent.Commits {
-		commitMessages += "- " + commit.Message + "\n"
+		commitMessages += "• " + commit.Message + "\n"
 	}
 
 	info := GitCommitInfo{
@@ -232,13 +403,15 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := sendGitDeploymentToLark(info); err != nil {
-		log.Printf("Error sending to Lark: %v", err)
+		log.Printf("❌ Error sending to Lark: %v", err)
+		sendErrorNotification(err.Error(), info.ServiceName)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("✅ Webhook processed successfully")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Webhook processed successfully"))
+	w.Write([]byte("🎉 Webhook processed successfully"))
 }
 
 func main() {
@@ -247,12 +420,15 @@ func main() {
 			ENV:         "DEV",
 			Deployer:    "rutchanai",
 			ServiceName: "tgth-backend-main",
-			CommitMsg:   "feat: backend deployment structure",
+			CommitMsg:   "feat: enhanced beautiful notification system with emojis and colors",
 			RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 		}
 
 		if err := sendToLark(info); err != nil {
-			log.Printf("Failed to send to Lark: %v", err)
+			log.Printf("❌ Failed to send to Lark: %v", err)
+			sendErrorNotification(err.Error(), info.ServiceName)
+		} else {
+			log.Printf("✅ Deployment notification sent successfully")
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -268,20 +444,21 @@ func main() {
 		info := DeploymentInfo{
 			ENV:         "TEST",
 			Deployer:    "test-user",
-			ServiceName: "test-service",
-			CommitMsg:   "test: testing notification system",
+			ServiceName: "notification-service",
+			CommitMsg:   "test: beautiful notification system with enhanced UI/UX",
 			RepoURL:     "https://github.com/kunaaa123/Bot_Test",
 		}
 
 		if err := sendToLark(info); err != nil {
-			log.Printf("Error sending to Lark: %v", err)
+			log.Printf("❌ Error sending to Lark: %v", err)
+			sendErrorNotification(err.Error(), info.ServiceName)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status": "notification sent successfully",
+			"status": "🎉 Beautiful notification sent successfully!",
 		})
 	})
 
@@ -298,14 +475,30 @@ func main() {
 		}
 
 		if err := sendToLark(info); err != nil {
-			log.Printf("Error sending to Lark: %v", err)
+			log.Printf("❌ Error sending to Lark: %v", err)
+			sendErrorNotification(err.Error(), info.ServiceName)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status": "custom notification sent successfully",
+			"status": "✨ Custom beautiful notification sent successfully!",
+		})
+	})
+
+	// New endpoint for testing error notifications
+	http.HandleFunc("/test-error", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		sendErrorNotification("Database connection timeout after 30 seconds", "test-service")
+		
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "🚨 Error notification sent successfully!",
 		})
 	})
 
@@ -316,6 +509,13 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Printf("Server running on port %s\n", port)
+	fmt.Printf("🚀 Beautiful Notification Server running on port %s\n", port)
+	fmt.Printf("📋 Available endpoints:\n")
+	fmt.Printf("   • POST /deployment-info - Send deployment notification\n")
+	fmt.Printf("   • POST /test-notification - Send test notification\n")
+	fmt.Printf("   • POST /custom-notification - Send custom notification\n")
+	fmt.Printf("   • POST /test-error - Send error notification\n")
+	fmt.Printf("   • POST /git-webhook - GitHub webhook handler\n")
+	
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
