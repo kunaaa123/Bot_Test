@@ -47,7 +47,7 @@ func sendToLark(info DeploymentInfo) error {
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
-					"content": "📊 Frontend Deployment",
+					"content": "📊 backend Deployment",
 					"tag":     "plain_text",
 				},
 				"template": "blue",
