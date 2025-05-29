@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	LARK_WEBHOOK     = "hhttps://open.larksuite.com/open-apis/bot/v2/hook/88fccfea-8fad-47d9-99a9-44d214785fff"
+	LARK_WEBHOOK     = "https://open.larksuite.com/open-apis/bot/v2/hook/db30d17f-d3e3-45c1-98ad-e9424247fb5c"
 	APP_ID           = "cli_a8b2c70af7389029"             // แทนที่ด้วย app_id จริง
 	APP_SECRET       = "QUbHQALAU0xrxWid9QU8Hb50wpY1wtwv" // แทนที่ด้วย app_secret จริง
 	IMAGE_UPLOAD_URL = "https://open.larksuite.com/open-apis/im/v1/images"
