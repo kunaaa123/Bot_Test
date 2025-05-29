@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -21,8 +20,6 @@ const (
 	TOKEN_URL        = "https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal"
 )
 
-// โครงสร้างสำหรับ Lark Webhook
-// GitHubPushEvent โครงสร้างสำหรับรับข้อมูลจาก GitHub Push Event
 // โครงสร้างสำหรับ GitHub Push Event
 type GitHubPushEvent struct {
 	Repository struct {
@@ -168,42 +165,28 @@ func sendToLark(message, repo, author, imageKey string) error {
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
-			"header": map[string]interface{}{
-				"title": map[string]interface{}{
-					"tag":     "plain_text",
-					"content": "🚀 New Commit Notification",
-				},
-				"template": "blue",
-			},
 			"elements": []map[string]interface{}{
-				{
-					"tag":     "img",
-					"img_key": imageKey,
-					"mode":    "fit_horizontal",
-					"alt": map[string]interface{}{
-						"tag":     "plain_text",
-						"content": "Preview Image",
-					},
-				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"tag": "lark_md",
-						"content": fmt.Sprintf("**Repository:** %s\n**Author:** %s\n**Message:** %s",
+						"content": fmt.Sprintf("Repository: %s\nAuthor: %s\nMessage: %s",
 							repo, author, message),
+						"tag": "plain_text",
 					},
 				},
 				{
-					"tag": "hr",
-				},
-				{
-					"tag": "note",
-					"elements": []map[string]interface{}{
-						{
-							"tag":     "plain_text",
-							"content": "🕒 " + time.Now().Format("2006-01-02 15:04:05"),
-						},
+					"tag":     "img",
+					"img_key": imageKey,
+					"alt": map[string]interface{}{
+						"tag":     "plain_text",
+						"content": "Image from GitHub webhook",
 					},
+				},
+			},
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"tag":     "plain_text",
+					"content": "GitHub Webhook Notification",
 				},
 			},
 		},
@@ -314,4 +297,5 @@ func main() {
 }
 
 //ee
+//
 //
