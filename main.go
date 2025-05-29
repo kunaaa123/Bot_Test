@@ -34,9 +34,15 @@ func getTenantAccessToken() string {
 		"app_id":     APP_ID,
 		"app_secret": APP_SECRET,
 	}
-	payloadBytes, _ := json.Marshal(payload)
-	resp, _ := http.Post("https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal",
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return ""
+	}
+	resp, err := http.Post("https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal",
 		"application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return ""
+	}
 	defer resp.Body.Close()
 
 	var result struct {
@@ -47,21 +53,33 @@ func getTenantAccessToken() string {
 }
 
 func uploadImageToLark(filePath, token string) string {
-	file, _ := os.Open(filePath)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return ""
+	}
 	defer file.Close()
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	writer.WriteField("image_type", "message")
-	part, _ := writer.CreateFormFile("image", filepath.Base(filePath))
+	part, err := writer.CreateFormFile("image", filepath.Base(filePath))
+	if err != nil {
+		return ""
+	}
 	io.Copy(part, file)
 	writer.Close()
 
-	req, _ := http.NewRequest("POST", "https://open.larksuite.com/open-apis/im/v1/images", body)
+	req, err := http.NewRequest("POST", "https://open.larksuite.com/open-apis/im/v1/images", body)
+	if err != nil {
+		return ""
+	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	resp, _ := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return ""
+	}
 	defer resp.Body.Close()
 
 	var result struct {
@@ -104,7 +122,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag":     "plain_text",
 						"content": "Backend Deployment",
 					},
-					"template": "blue", // เปลี่ยนเป็น blue เพื่อให้สีพื้นหลังเหมือนภาพตัวอย่าง
+					"template": "blue",
 				},
 				"elements": []map[string]interface{}{
 					{
@@ -116,22 +134,22 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 					{
 						"tag": "div",
 						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": fmt.Sprintf("**ENV**\nDEV"),
+							"tag":     "plain_text",
+							"content": "ENV\nDEV",
 						},
 					},
 					{
 						"tag": "div",
 						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+							"tag":     "plain_text",
+							"content": fmt.Sprintf("🤖 Deployer\n%s", lastCommit.Author.Name),
 						},
 					},
 					{
 						"tag": "div",
 						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+							"tag":     "plain_text",
+							"content": fmt.Sprintf("Service Name\n%s", pushEvent.Repository.Name),
 						},
 					},
 					{
