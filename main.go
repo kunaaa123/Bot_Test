@@ -99,26 +99,19 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"mode":    "fit_horizontal",
 					},
 					{
-						"tag": "div",
-						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": "\n<center>",
-						},
-					},
-					{
 						"fields": []map[string]interface{}{
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**ENV**\nDEV</div></center>"),
+									"content": "**Environment**\nDEV",
 								},
 							},
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**🤖 Deployer**\n%s</div></center>", lastCommit.Author.Name),
+									"content": fmt.Sprintf("**Deployer**\n%s", lastCommit.Author.Name),
 								},
 							},
 						},
@@ -127,7 +120,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("<center>**Service Name**\n%s</center>", pushEvent.Repository.Name),
+							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
 						},
 					},
 					{
@@ -137,7 +130,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("<center>**Commit Messages** 🤔\n• %s</center>", lastCommit.Message),
+							"content": fmt.Sprintf("**Commit Messages**\n• %s", lastCommit.Message),
 						},
 					},
 					{
@@ -159,7 +152,17 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		payloadBytes, _ := json.Marshal(payload)
-		http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
+		resp, err := http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
+		if err != nil {
+			fmt.Printf("Error sending to Lark: %v\n", err)
+			return
+		}
+		defer resp.Body.Close()
+
+		// อ่าน response เพื่อตรวจสอบสถานะ
+		var result map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&result)
+		fmt.Printf("Lark response: %v\n", result)
 	}
 }
 
