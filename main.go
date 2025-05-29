@@ -21,6 +21,7 @@ const (
 	TOKEN_URL        = "https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal"
 )
 
+// โครงสร้างสำหรับ Lark Webhook
 // GitHubPushEvent โครงสร้างสำหรับรับข้อมูลจาก GitHub Push Event
 // โครงสร้างสำหรับ GitHub Push Event
 type GitHubPushEvent struct {
