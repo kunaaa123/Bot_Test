@@ -99,23 +99,46 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"mode":    "fit_horizontal",
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**ENV**\nDEV"),
+						"tag": "div",
+						"text": map[string]interface{}{
+							"tag":     "lark_md",
+							"content": "\n<center>",
+						},
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+						"fields": []map[string]interface{}{
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**ENV**\nDEV</div></center>"),
+								},
+							},
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**🤖 Deployer**\n%s</div></center>", lastCommit.Author.Name),
+								},
+							},
+						},
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+						"tag": "div",
+						"text": map[string]interface{}{
+							"tag":     "lark_md",
+							"content": fmt.Sprintf("<center>**Service Name**\n%s</center>", pushEvent.Repository.Name),
+						},
 					},
 					{
 						"tag": "hr",
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+						"tag": "div",
+						"text": map[string]interface{}{
+							"tag":     "lark_md",
+							"content": fmt.Sprintf("<center>**Commit Messages** 🤔\n• %s</center>", lastCommit.Message),
+						},
 					},
 					{
 						"tag": "action",
