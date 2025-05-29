@@ -104,14 +104,14 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**ENV**\nDEV</div></center>"),
+									"content": fmt.Sprintf("<div class=\"box\">**ENV**\nDEV</div>"),
 								},
 							},
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<center><div style=\"text-align: center; border: 1px solid #e0e0e0; padding: 8px; border-radius: 5px; background: rgba(0,0,0,0.05);\">**🤖 Deployer**\n%s</div></center>", lastCommit.Author.Name),
+									"content": fmt.Sprintf("<div class=\"box\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
 								},
 							},
 						},
@@ -120,7 +120,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("<center>**Service Name**\n%s</center>", pushEvent.Repository.Name),
+							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
 						},
 					},
 					{
@@ -130,7 +130,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("<center>**Commit Messages** 🤔\n• %s</center>", lastCommit.Message),
+							"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
 						},
 					},
 					{
