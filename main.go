@@ -85,24 +85,51 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		payload := map[string]interface{}{
 			"msg_type": "interactive",
 			"card": map[string]interface{}{
-				"elements": []map[string]interface{}{
-					{
-						"tag": "div",
-						"text": map[string]interface{}{
-							"content": fmt.Sprintf("Repository: %s\nAuthor: %s\nMessage: %s",
-								pushEvent.Repository.Name, lastCommit.Author.Name, lastCommit.Message),
-							"tag": "plain_text",
-						},
-					},
-					{
-						"tag":     "img",
-						"img_key": imageKey,
-					},
-				},
 				"header": map[string]interface{}{
 					"title": map[string]interface{}{
 						"tag":     "plain_text",
-						"content": "GitHub Webhook Notification",
+						"content": "Backend Deployment",
+					},
+					"template": "indigo",
+				},
+				"elements": []map[string]interface{}{
+					{
+						"tag":     "img",
+						"img_key": imageKey,
+						"mode":    "fit_horizontal",
+					},
+					{
+						"tag":     "markdown",
+						"content": fmt.Sprintf("**ENV**\nDEV"),
+					},
+					{
+						"tag":     "markdown",
+						"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+					},
+					{
+						"tag":     "markdown",
+						"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+					},
+					{
+						"tag": "hr",
+					},
+					{
+						"tag":     "markdown",
+						"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+					},
+					{
+						"tag": "action",
+						"actions": []map[string]interface{}{
+							{
+								"tag": "button",
+								"text": map[string]interface{}{
+									"content": "View repo",
+									"tag":     "plain_text",
+								},
+								"url":  fmt.Sprintf("https://github.com/%s", pushEvent.Repository.Name),
+								"type": "default",
+							},
+						},
 					},
 				},
 			},
