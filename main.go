@@ -26,7 +26,7 @@ func sendToLark(message, repo, author string) error {
 	payload := map[string]interface{}{
 		"msg_type": "text",
 		"content": map[string]interface{}{
-			"text": fmt.Sprintf("🚀 **New Commit Notification**\n\n📦 **Repository:** %s\n👨‍💻 **Author:** %s\n💬 **Message:** %s\n\n![GitHub](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png)",
+			"text": fmt.Sprintf("🚀 **New Commit Notification**\n\n📦 **Repository:** %s\n👨‍💻 **Author:** %s\n💬 **Message:** %s",
 				repo, author, message),
 		},
 	}
