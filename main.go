@@ -229,7 +229,8 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/webhook", handleGitHubWebhook)
+	// เปลี่ยนจาก /webhook เป็น /git-webhook
+	http.HandleFunc("/git-webhook", handleGitHubWebhook)
 
 	port := ":8080"
 	fmt.Printf("Server is running on port %s\n", port)
