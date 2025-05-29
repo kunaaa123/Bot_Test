@@ -35,12 +35,6 @@ func sendToLark(message, repo, author string) error {
 			},
 			"elements": []map[string]interface{}{
 				{
-					"tag":  "img",
-					"src":  "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", // ตัวอย่าง URL รูปภาพ
-					"mode": "fit_horizontal",
-					"alt":  "GitHub Logo",
-				},
-				{
 					"tag": "div",
 					"text": map[string]interface{}{
 						"content": fmt.Sprintf("### 📌 รายละเอียด Commit\n\n"+
