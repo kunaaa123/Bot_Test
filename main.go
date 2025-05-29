@@ -79,7 +79,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	if len(pushEvent.Commits) > 0 {
 		token := getTenantAccessToken()
-		imageKey := uploadImageToLark("./1_dDNpLKu_oTLzStsDTnkJ-g.png", token)
+		imageKey := uploadImageToLark("./github_logo.png", token)
 		lastCommit := pushEvent.Commits[0]
 
 		payload := map[string]interface{}{
@@ -99,23 +99,39 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"mode":    "fit_horizontal",
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**ENV**\nDEV"),
+						"fields": []map[string]interface{}{
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<div class=\"box\">**ENV**\nDEV</div>"),
+								},
+							},
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<div class=\"box\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
+								},
+							},
+						},
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
-					},
-					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+						"tag": "div",
+						"text": map[string]interface{}{
+							"tag":     "lark_md",
+							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+						},
 					},
 					{
 						"tag": "hr",
 					},
 					{
-						"tag":     "markdown",
-						"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+						"tag": "div",
+						"text": map[string]interface{}{
+							"tag":     "lark_md",
+							"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+						},
 					},
 					{
 						"tag": "action",
