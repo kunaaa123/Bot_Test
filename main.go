@@ -131,10 +131,11 @@ func uploadImageToLark(filePath, token string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// เพิ่ม logging response
+	// เพิ่ม detailed logging
 	respBody, _ := io.ReadAll(resp.Body)
-	log.Printf("Response Status: %d", resp.StatusCode)
-	log.Printf("Response Body: %s", string(respBody))
+	log.Printf("Full Response Status: %d", resp.StatusCode)
+	log.Printf("Full Response Headers: %v", resp.Header)
+	log.Printf("Full Response Body: %s", string(respBody))
 
 	// Reset response body for further reading
 	resp.Body = io.NopCloser(bytes.NewBuffer(respBody))
