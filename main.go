@@ -24,10 +24,34 @@ type GitHubPushEvent struct {
 
 func sendToLark(message, repo, author string) error {
 	payload := map[string]interface{}{
-		"msg_type": "text",
-		"content": map[string]interface{}{
-			"text": fmt.Sprintf("🚀 **New Commit Notification**\n\n📦 **Repository:** %s\n👨‍💻 **Author:** %s\n💬 **Message:** %s",
-				repo, author, message),
+		"msg_type": "interactive",
+		"card": map[string]interface{}{
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"content": "🔔 แจ้งเตือน Commit ใหม่",
+					"tag":     "plain_text",
+				},
+				"template": "blue",
+			},
+			"elements": []map[string]interface{}{
+				{
+					"tag":  "img",
+					"src":  "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", // ตัวอย่าง URL รูปภาพ
+					"mode": "fit_horizontal",
+					"alt":  "GitHub Logo",
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"content": fmt.Sprintf("### 📌 รายละเอียด Commit\n\n"+
+							"**🏢 Repository:** %s\n"+
+							"**👤 ผู้ทำการ Commit:** %s\n"+
+							"**📝 ข้อความ:** %s",
+							repo, author, message),
+						"tag": "lark_md",
+					},
+				},
+			},
 		},
 	}
 
