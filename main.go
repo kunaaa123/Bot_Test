@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 const LARK_WEBHOOK = "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
@@ -26,13 +27,39 @@ func sendToLark(message, repo, author string) error {
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"content": "🎉 New Commit Notification",
+					"tag":     "plain_text",
+				},
+				"template": "indigo",
+			},
 			"elements": []map[string]interface{}{
 				{
+					"tag": "markdown",
+					"content": fmt.Sprintf("### 📦 Repository Information\n**Name:** %s\n\n### 👨‍💻 Developer\n**Author:** %s\n\n### 💬 Commit Details\n```\n%s\n```",
+						repo, author, message),
+				},
+				{
+					"tag": "hr",
+				},
+				{
 					"tag": "div",
-					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Repository: %s\nAuthor: %s\nMessage: %s",
-							repo, author, message),
-						"tag": "plain_text",
+					"fields": []map[string]interface{}{
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"tag":     "lark_md",
+								"content": fmt.Sprintf("🕒 **Time**\n%s", time.Now().Format("15:04:05")),
+							},
+						},
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"tag":     "lark_md",
+								"content": fmt.Sprintf("📅 **Date**\n%s", time.Now().Format("2006-01-02")),
+							},
+						},
 					},
 				},
 			},
