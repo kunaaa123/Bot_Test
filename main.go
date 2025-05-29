@@ -163,6 +163,15 @@ func sendToLark(message, repo, author, imageKey string) error {
 
 // ฟังก์ชันจัดการ GitHub Webhook
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
+	// ตั้งค่า header
+	w.Header().Set("Content-Type", "application/json")
+
+	// ตรวจสอบ Content-Type ของ request
+	if r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Content-Type must be application/json", http.StatusUnsupportedMediaType)
+		return
+	}
+
 	// ตรวจสอบว่าเป็น POST request
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -204,12 +213,18 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// ส่ง response กลับ
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Webhook processed successfully"))
+		// ส่ง response กลับในรูปแบบ JSON
+		response := map[string]string{
+			"status":  "success",
+			"message": "Webhook processed successfully",
+		}
+		json.NewEncoder(w).Encode(response)
 	} else {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("No commits found in the push event"))
+		response := map[string]string{
+			"status":  "success",
+			"message": "No commits found in the push event",
+		}
+		json.NewEncoder(w).Encode(response)
 	}
 }
 
