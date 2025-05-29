@@ -39,6 +39,10 @@ func getTenantAccessToken() (string, error) {
 		"app_id":     APP_ID,
 		"app_secret": APP_SECRET,
 	}
+
+	// เพิ่ม logging
+	log.Printf("Getting token for app_id: %s", APP_ID)
+
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
@@ -49,6 +53,13 @@ func getTenantAccessToken() (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	// เพิ่ม logging response
+	respBody, _ := io.ReadAll(resp.Body)
+	log.Printf("Token Response: %s", string(respBody))
+
+	// Reset response body
+	resp.Body = io.NopCloser(bytes.NewBuffer(respBody))
 
 	var result struct {
 		Code              int    `json:"code"`
