@@ -99,19 +99,20 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"mode":    "fit_horizontal",
 					},
 					{
+						"tag": "div",
 						"fields": []map[string]interface{}{
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": "**Environment**\nDEV",
+									"content": fmt.Sprintf("<div class=\"box\">**ENV**\nDEV</div>"),
 								},
 							},
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("**Deployer**\n%s", lastCommit.Author.Name),
+									"content": fmt.Sprintf("<div class=\"box\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
 								},
 							},
 						},
@@ -130,7 +131,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Commit Messages**\n• %s", lastCommit.Message),
+							"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
 						},
 					},
 					{
@@ -152,17 +153,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		payloadBytes, _ := json.Marshal(payload)
-		resp, err := http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
-		if err != nil {
-			fmt.Printf("Error sending to Lark: %v\n", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		// อ่าน response เพื่อตรวจสอบสถานะ
-		var result map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&result)
-		fmt.Printf("Lark response: %v\n", result)
+		http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
 	}
 }
 
