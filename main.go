@@ -79,7 +79,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	if len(pushEvent.Commits) > 0 {
 		token := getTenantAccessToken()
-		imageKey := uploadImageToLark("./1_dDNpLKu_oTLzStsDTnkJ-g.png", token)
+		imageKey := uploadImageToLark("./github_logo.png", token)
 		lastCommit := pushEvent.Commits[0]
 
 		payload := map[string]interface{}{
