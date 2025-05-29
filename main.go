@@ -65,8 +65,12 @@ func getTenantAccessToken() (string, error) {
 
 // ฟังก์ชันอัปโหลดรูปภาพและรับ image_key
 func uploadImageToLark(filePath, token string) (string, error) {
+	// เพิ่ม logging
+	log.Printf("Starting image upload: %s", filePath)
+
 	file, err := os.Open(filePath)
 	if err != nil {
+		log.Printf("Error opening file: %v", err)
 		return "", err
 	}
 	defer file.Close()
@@ -75,40 +79,62 @@ func uploadImageToLark(filePath, token string) (string, error) {
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("image", filepath.Base(filePath))
 	if err != nil {
+		log.Printf("Error creating form file: %v", err)
 		return "", err
 	}
 	_, err = io.Copy(part, file)
 	if err != nil {
+		log.Printf("Error copying file: %v", err)
 		return "", err
 	}
 	writer.Close()
 
 	req, err := http.NewRequest("POST", IMAGE_UPLOAD_URL, body)
 	if err != nil {
+		log.Printf("Error creating request: %v", err)
 		return "", err
 	}
+
+	// เพิ่ม logging headers
+	log.Printf("Authorization: Bearer %s", token)
+	log.Printf("Content-Type: %s", writer.FormDataContentType())
+
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error sending request: %v", err)
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	// เพิ่ม logging response
+	respBody, _ := io.ReadAll(resp.Body)
+	log.Printf("Response Status: %d", resp.StatusCode)
+	log.Printf("Response Body: %s", string(respBody))
+
+	// Reset response body for further reading
+	resp.Body = io.NopCloser(bytes.NewBuffer(respBody))
 
 	var result struct {
 		Code int `json:"code"`
 		Data struct {
 			ImageKey string `json:"image_key"`
 		} `json:"data"`
+		Msg string `json:"msg"` // เพิ่มเพื่อดู error message
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Printf("Error decoding response: %v", err)
 		return "", err
 	}
 	if result.Code != 0 {
-		return "", fmt.Errorf("upload failed, code: %d", result.Code)
+		log.Printf("Upload failed with code %d: %s", result.Code, result.Msg)
+		return "", fmt.Errorf("upload failed, code: %d, msg: %s", result.Code, result.Msg)
 	}
+
+	log.Printf("Upload successful, image key: %s", result.Data.ImageKey)
 	return result.Data.ImageKey, nil
 }
 
@@ -188,14 +214,23 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		// รับ tenant_access_token
 		token, err := getTenantAccessToken()
 		if err != nil {
+			log.Printf("Error getting token: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// อัปโหลดรูปภาพ (แทนที่ด้วย path รูปภาพจริง)
+		// ตรวจสอบว่าไฟล์รูปภาพมีอยู่จริง
 		imagePath := "./Screenshot 2025-05-28 171410.png"
+		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
+			log.Printf("Image file not found: %v", err)
+			http.Error(w, "Image file not found", http.StatusInternalServerError)
+			return
+		}
+
+		// อัปโหลดรูปภาพ
 		imageKey, err := uploadImageToLark(imagePath, token)
 		if err != nil {
+			log.Printf("Error uploading image: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
