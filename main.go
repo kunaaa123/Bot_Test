@@ -61,29 +61,45 @@ func sendToLark(message, repo, author string) error {
 
 	resp, err := http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send to Lark: %v", err)
 	}
 	defer resp.Body.Close()
+
+	// เพิ่มการตรวจสอบ response
+	if resp.StatusCode != http.StatusOK {
+		var respBody bytes.Buffer
+		respBody.ReadFrom(resp.Body)
+		return fmt.Errorf("Lark API returned non-200 status code: %d, body: %s",
+			resp.StatusCode, respBody.String())
+	}
+
 	return nil
 }
 
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	var pushEvent GitHubPushEvent
 	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
+		log.Printf("Failed to decode webhook payload: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if len(pushEvent.Commits) > 0 {
+		log.Printf("Sending notification for commit by %s in repo %s",
+			pushEvent.Commits[0].Author.Name,
+			pushEvent.Repository.Name)
+
 		err := sendToLark(
 			pushEvent.Commits[0].Message,
 			pushEvent.Repository.Name,
 			pushEvent.Commits[0].Author.Name,
 		)
 		if err != nil {
+			log.Printf("Failed to send to Lark: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		log.Println("Successfully sent notification to Lark")
 	}
 
 	w.WriteHeader(http.StatusOK)
