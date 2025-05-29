@@ -35,14 +35,6 @@ func sendToLark(message, repo, author string) error {
 			},
 			"elements": []map[string]interface{}{
 				{
-					"tag": "img",
-					"url": "https://sourcebae.com/blog/wp-content/uploads/2023/09/maxresdefault-44.jpg", // เปลี่ยนจาก img_key เป็น url
-					"alt": map[string]interface{}{
-						"tag":     "plain_text",
-						"content": "Git Commit Image",
-					},
-				},
-				{
 					"tag": "div",
 					"text": map[string]interface{}{
 						"content": fmt.Sprintf("📦 *Repository:* %s\n👨‍💻 *Author:* %s\n💬 *Message:* %s",
