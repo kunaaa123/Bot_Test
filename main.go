@@ -75,25 +75,11 @@ func uploadImageToLark(filePath, token string) string {
 
 func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	var pushEvent GitHubPushEvent
-	err := json.NewDecoder(r.Body).Decode(&pushEvent)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("decode webhook payload failed: %v", err), http.StatusBadRequest)
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&pushEvent)
 
 	if len(pushEvent.Commits) > 0 {
 		token := getTenantAccessToken()
-		if token == "" {
-			http.Error(w, "failed to get tenant access token", http.StatusInternalServerError)
-			return
-		}
-
 		imageKey := uploadImageToLark("./github_logo.png", token)
-		if imageKey == "" {
-			http.Error(w, "failed to upload image", http.StatusInternalServerError)
-			return
-		}
-
 		lastCommit := pushEvent.Commits[0]
 
 		payload := map[string]interface{}{
@@ -104,7 +90,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag":     "plain_text",
 						"content": "Backend Deployment",
 					},
-					"template": "blue", // เปลี่ยนเป็น blue เพื่อให้สีพื้นหลังเหมือนภาพตัวอย่าง
+					"template": "indigo",
 				},
 				"elements": []map[string]interface{}{
 					{
@@ -115,30 +101,38 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 					},
 					{
 						"tag": "div",
-						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": fmt.Sprintf("**ENV**\nDEV"),
+						"fields": []map[string]interface{}{
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<div class=\"box\" style=\"text-align: center\">**ENV**\nDEV</div>"),
+								},
+							},
+							{
+								"is_short": true,
+								"text": map[string]interface{}{
+									"tag":     "lark_md",
+									"content": fmt.Sprintf("<div class=\"box\" style=\"text-align: center\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
+								},
+							},
 						},
 					},
 					{
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+							"content": fmt.Sprintf("<div style=\"text-align: center\">**Service Name**\n%s</div>", pushEvent.Repository.Name),
 						},
+					},
+					{
+						"tag": "hr",
 					},
 					{
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
-						},
-					},
-					{
-						"tag": "div",
-						"text": map[string]interface{}{
-							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+							"content": fmt.Sprintf("<div style=\"text-align: center\">**Commit Messages** 🤔\n• %s</div>", lastCommit.Message),
 						},
 					},
 					{
@@ -159,27 +153,9 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("marshal payload failed: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		resp, err := http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
-		if err != nil {
-			http.Error(w, fmt.Sprintf("send to Lark failed: %v", err), http.StatusInternalServerError)
-			return
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			http.Error(w, fmt.Sprintf("Lark API failed, status: %d, response: %s", resp.StatusCode, string(body)), http.StatusInternalServerError)
-			return
-		}
+		payloadBytes, _ := json.Marshal(payload)
+		http.Post(LARK_WEBHOOK, "application/json", bytes.NewBuffer(payloadBytes))
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
