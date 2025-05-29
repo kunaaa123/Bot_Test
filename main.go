@@ -26,13 +26,28 @@ func sendToLark(message, repo, author string) error {
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
+			"header": map[string]interface{}{
+				"title": map[string]interface{}{
+					"tag":     "plain_text",
+					"content": "📢 แจ้งเตือน GitHub Push",
+				},
+			},
 			"elements": []map[string]interface{}{
+				{
+					"tag": "img",
+					"alt": map[string]interface{}{
+						"tag":     "plain_text",
+						"content": "รูปภาพประกอบแจ้งเตือน",
+					},
+					"src":     "https://sourcebae.com/blog/wp-content/uploads/2023/09/maxresdefault-44.jpg",
+					"mode":    "crop_center",
+					"preview": true,
+				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Repository: %s\nAuthor: %s\nMessage: %s",
-							repo, author, message),
-						"tag": "plain_text",
+						"tag":     "plain_text",
+						"content": fmt.Sprintf("📁 Repository: %s\n👤 Author: %s\n📝 Message: %s", repo, author, message),
 					},
 				},
 			},
