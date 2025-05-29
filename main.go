@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	LARK_WEBHOOK     = "https://open.larksuite.com/open-apis/bot/v2/hook/db30d17f-d3e3-45c1-98ad-e9424247fb5c"
+	LARK_WEBHOOK     = "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
 	APP_ID           = "cli_a8b2c70af7389029"             // แทนที่ด้วย app_id จริง
 	APP_SECRET       = "QUbHQALAU0xrxWid9QU8Hb50wpY1wtwv" // แทนที่ด้วย app_secret จริง
 	IMAGE_UPLOAD_URL = "https://open.larksuite.com/open-apis/im/v1/images"
@@ -242,7 +242,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// ตรวจสอบว่าไฟล์รูปภาพมีอยู่จริง
-		imagePath := "/Screenshot 2025-05-28 171410.png"
+		imagePath := "./Screenshot 2025-05-28 171410.png"
 		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
 			log.Printf("Image file not found: %v", err)
 			http.Error(w, "Image file not found", http.StatusInternalServerError)
@@ -297,5 +297,4 @@ func main() {
 }
 
 //ee
-//
 //
