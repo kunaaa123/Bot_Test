@@ -97,6 +97,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag":     "img",
 						"img_key": imageKey,
 						"mode":    "fit_horizontal",
+						"preview": true,
 					},
 					{
 						"tag": "div",
@@ -105,14 +106,14 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<div class=\"box\">**ENV**\nDEV</div>"),
+									"content": fmt.Sprintf("<div class=\"box\" style=\"text-align: center\">**ENV**\nDEV</div>"),
 								},
 							},
 							{
 								"is_short": true,
 								"text": map[string]interface{}{
 									"tag":     "lark_md",
-									"content": fmt.Sprintf("<div class=\"box\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
+									"content": fmt.Sprintf("<div class=\"box\" style=\"text-align: center\">**🤖 Deployer**\n%s</div>", lastCommit.Author.Name),
 								},
 							},
 						},
@@ -121,7 +122,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+							"content": fmt.Sprintf("<div style=\"text-align: center\">**Service Name**\n%s</div>", pushEvent.Repository.Name),
 						},
 					},
 					{
@@ -131,7 +132,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 						"tag": "div",
 						"text": map[string]interface{}{
 							"tag":     "lark_md",
-							"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+							"content": fmt.Sprintf("<div style=\"text-align: center\">**Commit Messages** 🤔\n• %s</div>", lastCommit.Message),
 						},
 					},
 					{
