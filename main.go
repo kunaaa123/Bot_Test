@@ -71,7 +71,7 @@ func sendToLark(message, repo, author string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Lark API returned non-200 status code: %d, body: %s",
-			resp.StatusCode, respBody.String())ห
+			resp.StatusCode, respBody.String())
 	}
 	return nil
 }
