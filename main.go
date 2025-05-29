@@ -242,7 +242,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// ตรวจสอบว่าไฟล์รูปภาพมีอยู่จริง
-		imagePath := "./1_dDNpLKu_oTLzStsDTnkJ-g.png"
+		imagePath := "/Screenshot 2025-05-28 171410.png"
 		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
 			log.Printf("Image file not found: %v", err)
 			http.Error(w, "Image file not found", http.StatusInternalServerError)
