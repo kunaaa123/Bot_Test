@@ -65,7 +65,6 @@ func getTenantAccessToken() (string, error) {
 
 // ฟังก์ชันอัปโหลดรูปภาพและรับ image_key
 func uploadImageToLark(filePath, token string) (string, error) {
-	// เพิ่ม logging
 	log.Printf("Starting image upload: %s", filePath)
 
 	file, err := os.Open(filePath)
@@ -77,11 +76,20 @@ func uploadImageToLark(filePath, token string) (string, error) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
+
+	// เพิ่มฟิลด์ image_type
+	err = writer.WriteField("image_type", "message")
+	if err != nil {
+		return "", err
+	}
+
+	// สร้าง form file ด้วยชื่อฟิลด์ "image"
 	part, err := writer.CreateFormFile("image", filepath.Base(filePath))
 	if err != nil {
 		log.Printf("Error creating form file: %v", err)
 		return "", err
 	}
+
 	_, err = io.Copy(part, file)
 	if err != nil {
 		log.Printf("Error copying file: %v", err)
@@ -95,12 +103,14 @@ func uploadImageToLark(filePath, token string) (string, error) {
 		return "", err
 	}
 
-	// เพิ่ม logging headers
-	log.Printf("Authorization: Bearer %s", token)
-	log.Printf("Content-Type: %s", writer.FormDataContentType())
-
+	// เพิ่ม headers ที่จำเป็น
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// เพิ่ม logging
+	log.Printf("Request URL: %s", IMAGE_UPLOAD_URL)
+	log.Printf("Authorization: Bearer %s", token)
+	log.Printf("Content-Type: %s", writer.FormDataContentType())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
