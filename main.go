@@ -35,8 +35,8 @@ func sendToLark(message, repo, author string) error {
 			},
 			"elements": []map[string]interface{}{
 				{
-					"tag":     "img",
-					"img_key": "https://sourcebae.com/blog/wp-content/uploads/2023/09/maxresdefault-44.jpg",
+					"tag": "img",
+					"url": "https://sourcebae.com/blog/wp-content/uploads/2023/09/maxresdefault-44.jpg", // เปลี่ยนจาก img_key เป็น url
 					"alt": map[string]interface{}{
 						"tag":     "plain_text",
 						"content": "Git Commit Image",
@@ -65,14 +65,14 @@ func sendToLark(message, repo, author string) error {
 	}
 	defer resp.Body.Close()
 
-	// เพิ่มการตรวจสอบ response
-	if resp.StatusCode != http.StatusOK {
-		var respBody bytes.Buffer
-		respBody.ReadFrom(resp.Body)
-		return fmt.Errorf("Lark API returned non-200 status code: %d, body: %s",
-			resp.StatusCode, respBody.String())
-	}
+	var respBody bytes.Buffer
+	respBody.ReadFrom(resp.Body)
+	log.Printf("Lark Response: %s", respBody.String()) // เพิ่ม log นี้
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Lark API returned non-200 status code: %d, body: %s",
+			resp.StatusCode, respBody.String())ห
+	}
 	return nil
 }
 
