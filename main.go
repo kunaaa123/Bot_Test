@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
-	LARK_WEBHOOK     = "https://open.larksuite.com/open-apis/bot/v2/hook/66a2d4a9-a7dd-47d3-a15a-c11c6f97c7f5"
+	LARK_WEBHOOK     = "hhttps://open.larksuite.com/open-apis/bot/v2/hook/88fccfea-8fad-47d9-99a9-44d214785fff"
 	APP_ID           = "cli_a8b2c70af7389029"             // แทนที่ด้วย app_id จริง
 	APP_SECRET       = "QUbHQALAU0xrxWid9QU8Hb50wpY1wtwv" // แทนที่ด้วย app_secret จริง
 	IMAGE_UPLOAD_URL = "https://open.larksuite.com/open-apis/im/v1/images"
@@ -165,28 +166,42 @@ func sendToLark(message, repo, author, imageKey string) error {
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
-			"elements": []map[string]interface{}{
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"content": fmt.Sprintf("Repository: %s\nAuthor: %s\nMessage: %s",
-							repo, author, message),
-						"tag": "plain_text",
-					},
-				},
-				{
-					"tag":     "img",
-					"img_key": imageKey,
-					"alt": map[string]interface{}{
-						"tag":     "plain_text",
-						"content": "Image from GitHub webhook",
-					},
-				},
-			},
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": "GitHub Webhook Notification",
+					"content": "🚀 New Commit Notification",
+				},
+				"template": "blue",
+			},
+			"elements": []map[string]interface{}{
+				{
+					"tag":     "img",
+					"img_key": imageKey,
+					"mode":    "fit_horizontal",
+					"alt": map[string]interface{}{
+						"tag":     "plain_text",
+						"content": "Preview Image",
+					},
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"tag": "lark_md",
+						"content": fmt.Sprintf("**Repository:** %s\n**Author:** %s\n**Message:** %s",
+							repo, author, message),
+					},
+				},
+				{
+					"tag": "hr",
+				},
+				{
+					"tag": "note",
+					"elements": []map[string]interface{}{
+						{
+							"tag":     "plain_text",
+							"content": "🕒 " + time.Now().Format("2006-01-02 15:04:05"),
+						},
+					},
 				},
 			},
 		},
@@ -242,7 +257,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// ตรวจสอบว่าไฟล์รูปภาพมีอยู่จริง
-		imagePath := "./Screenshot 2025-05-28 171410.png"
+		imagePath := "./1_dDNpLKu_oTLzStsDTnkJ-g.png"
 		if _, err := os.Stat(imagePath); os.IsNotExist(err) {
 			log.Printf("Image file not found: %v", err)
 			http.Error(w, "Image file not found", http.StatusInternalServerError)
@@ -297,5 +312,4 @@ func main() {
 }
 
 //ee
-//
 //
