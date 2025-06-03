@@ -28,3 +28,4 @@ func main() {
 
 // Note: The image upload path is flexible and can be adjusted as needed.
 // The current path is just an example and can be changed to suit your environment.
+// Ensure the image file exists at the specified path or update it to a valid path.
