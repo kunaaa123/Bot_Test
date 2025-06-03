@@ -21,6 +21,7 @@ type GitHubPushEvent struct {
 	Repository struct {
 		Name string `json:"name"`
 	} `json:"repository"`
+	Ref     string `json:"ref"` // เพิ่มฟิลด์นี้เพื่อรับข้อมูล branch
 	Commits []struct {
 		Message string `json:"message"`
 		Author  struct {
@@ -99,6 +100,50 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	lastCommit := pushEvent.Commits[0]
 
+	// แปลงชื่อ branch จาก refs/heads/main เป็น main
+	branch := pushEvent.Ref
+	if len(branch) > 11 {
+		branch = branch[11:]
+	}
+
+	// เพิ่มส่วนแสดงผล Environment ใน elements
+	elements := []map[string]interface{}{
+		{
+			"tag":     "img",
+			"img_key": imageKey,
+			"mode":    "fit_horizontal",
+			"preview": true,
+		},
+		{
+			"tag": "div",
+			"text": map[string]interface{}{
+				"tag":     "lark_md",
+				"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+			},
+		},
+		{
+			"tag": "div",
+			"text": map[string]interface{}{
+				"tag":     "lark_md",
+				"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
+			},
+		},
+		{
+			"tag": "div",
+			"text": map[string]interface{}{
+				"tag":     "lark_md",
+				"content": fmt.Sprintf("**Commit Message**\n• %s", lastCommit.Message),
+			},
+		},
+		{
+			"tag": "div",
+			"text": map[string]interface{}{
+				"tag":     "lark_md",
+				"content": fmt.Sprintf("**Environment**\n🌿 Branch: %s", branch),
+			},
+		},
+	}
+
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
@@ -109,35 +154,7 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 				},
 				"template": "blue",
 			},
-			"elements": []map[string]interface{}{
-				{
-					"tag":     "img",
-					"img_key": imageKey,
-					"mode":    "fit_horizontal",
-					"preview": true,
-				},
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"tag":     "lark_md",
-						"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
-					},
-				},
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Service Name**\n%s", pushEvent.Repository.Name),
-					},
-				},
-				{
-					"tag": "div",
-					"text": map[string]interface{}{
-						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Commit Message**\n• %s", lastCommit.Message),
-					},
-				},
-			},
+			"elements": elements,
 		},
 	}
 
