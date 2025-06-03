@@ -148,26 +148,46 @@ func getTenantAccessToken() string {
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
+	// Log request details
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading body: %v", err)
+		http.Error(w, "Can't read body", http.StatusBadRequest)
+		return
+	}
+	log.Printf("Received webhook payload: %s", string(body))
+
+	// Create new reader since body was read
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
+
 	var pushEvent GitHubPushEvent
 	if err := json.NewDecoder(r.Body).Decode(&pushEvent); err != nil {
+		log.Printf("Error decoding payload: %v", err)
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 
 	if len(pushEvent.Commits) == 0 {
+		log.Println("No commits found in payload")
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
 	imageKey, err := uploadImage(getTenantAccessToken())
 	if err != nil {
 		log.Printf("Failed to upload image: %v", err)
+		http.Error(w, "Failed to process webhook", http.StatusInternalServerError)
 		return
 	}
 
 	if err := sendLarkNotification(&pushEvent, imageKey); err != nil {
 		log.Printf("Failed to send notification: %v", err)
+		http.Error(w, "Failed to send notification", http.StatusInternalServerError)
 		return
 	}
+
+	// Send success response
+	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
