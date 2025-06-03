@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"larkbot/cmd/internal/domain"
+	"strings"
 )
 
 type WebhookUsecase struct {
@@ -30,15 +31,18 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 
 	lastCommit := event.Commits[0]
 
+	// แปลง ref (refs/heads/main) เป็นชื่อ branch (main)
+	branch := strings.TrimPrefix(event.Ref, "refs/heads/")
+
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
 		"card": map[string]interface{}{
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": "Backend Deployment",
+					"content": fmt.Sprintf("Backend Deployment - %s", branch),
 				},
-				"template": "indigo",
+				"template": "blue",
 			},
 			"elements": []map[string]interface{}{
 				{
@@ -54,7 +58,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": "**ENV**\nDEV",
+								"content": fmt.Sprintf("**🌿 Branch**\n`%s`", branch),
 							},
 						},
 						{
@@ -68,9 +72,21 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 				},
 				{
 					"tag": "div",
-					"text": map[string]interface{}{
-						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Service Name**\n%s", event.Repository.Name),
+					"fields": []map[string]interface{}{
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"tag":     "lark_md",
+								"content": "**🌐 ENV**\n`DEV`",
+							},
+						},
+						{
+							"is_short": true,
+							"text": map[string]interface{}{
+								"tag":     "lark_md",
+								"content": fmt.Sprintf("**📦 Service**\n`%s`", event.Repository.Name),
+							},
+						},
 					},
 				},
 				{

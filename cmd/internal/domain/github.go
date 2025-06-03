@@ -1,6 +1,7 @@
 package domain
 
 type GitHubPushEvent struct {
+	Ref        string `json:"ref"` // เพิ่ม field นี้
 	Repository struct {
 		Name     string `json:"name"`
 		FullName string `json:"full_name"`
