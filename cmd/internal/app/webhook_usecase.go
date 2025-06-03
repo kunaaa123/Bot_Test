@@ -138,5 +138,3 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 
 	return u.Lark.SendWebhookMessage(payload)
 }
-
-// HandleGitHubPush processes GitHub push events and sends a formatted message to Lark.
