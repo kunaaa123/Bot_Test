@@ -36,16 +36,30 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": "Backend Deployment",
+					"content": "🚀 Deployment Notification",
 				},
-				"template": "indigo",
+				"template": "blue", // เปลี่ยนสีให้โดดเด่น
 			},
 			"elements": []map[string]interface{}{
 				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"tag":     "lark_md",
+						"content": "━━━━━━━━━━━━━━━━━━━━━━", // เส้นคั่นด้านบน
+					},
+				},
+				{
 					"tag":     "img",
 					"img_key": imageKey,
-					"mode":    "fit_horizontal",
+					"mode":    "crop_center", // จัดรูปให้อยู่กลาง
 					"preview": true,
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"tag":     "lark_md",
+						"content": fmt.Sprintf("**🌟 Service: %s**", event.Repository.Name),
+					},
 				},
 				{
 					"tag": "div",
@@ -54,14 +68,14 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": "**ENV**\nDEV",
+								"content": "**📍 Environment**\n`DEV`",
 							},
 						},
 						{
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+								"content": fmt.Sprintf("**👨‍💻 Deployer**\n`%s`", lastCommit.Author.Name),
 							},
 						},
 					},
@@ -70,17 +84,21 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 					"tag": "div",
 					"text": map[string]interface{}{
 						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Service Name**\n%s", event.Repository.Name),
+						"content": "━━━━━━━━━━━━━━━━━━━━━━", // เส้นคั่นกลาง
 					},
-				},
-				{
-					"tag": "hr",
 				},
 				{
 					"tag": "div",
 					"text": map[string]interface{}{
 						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+						"content": fmt.Sprintf("**📝 Latest Commit**\n> %s", lastCommit.Message),
+					},
+				},
+				{
+					"tag": "div",
+					"text": map[string]interface{}{
+						"tag":     "lark_md",
+						"content": "━━━━━━━━━━━━━━━━━━━━━━", // เส้นคั่นล่าง
 					},
 				},
 				{
@@ -89,14 +107,17 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View repo",
+								"content": "🔍 View Repository",
 								"tag":     "plain_text",
 							},
-							"url":  event.Repository.HTMLURL, // ใช้ URL ที่ GitHub ส่งมาโดยตรง
-							"type": "default",
+							"url":  event.Repository.HTMLURL,
+							"type": "primary", // ปรับสีปุ่มให้โดดเด่น
 						},
 					},
 				},
+			},
+			"config": map[string]interface{}{
+				"wide_screen_mode": true, // แสดงแบบเต็มจอ
 			},
 		},
 	}
