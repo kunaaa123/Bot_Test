@@ -128,7 +128,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 								"content": "View repo",
 								"tag":     "plain_text",
 							},
-							"url":  event.Repository.HTMLURL, // ใช้ URL ที่ GitHub ส่งมาโดยตรง
+							"url":  event.Repository.HTMLURL, // ใช้ URL ที่ GitHub
 							"type": "default",
 						},
 					},
