@@ -14,6 +14,25 @@ func NewWebhookUsecase(lark domain.LarkService) *WebhookUsecase {
 	return &WebhookUsecase{Lark: lark}
 }
 
+func getBranchEnvironment(branch string) string {
+	switch branch {
+	case "main", "master":
+		return "PRODUCTION"
+	case "staging", "qa":
+		return "STAGING"
+	case "develop":
+		return "DEVELOPMENT"
+	default:
+		if strings.HasPrefix(branch, "feature/") {
+			return "DEVELOPMENT"
+		}
+		if strings.HasPrefix(branch, "hotfix/") {
+			return "HOTFIX"
+		}
+		return "DEVELOPMENT"
+	}
+}
+
 func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 	if len(event.Commits) == 0 {
 		return nil
@@ -33,6 +52,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 
 	// แปลง ref (refs/heads/main) เป็นชื่อ branch (main)
 	branch := strings.TrimPrefix(event.Ref, "refs/heads/")
+	env := getBranchEnvironment(branch)
 
 	payload := map[string]interface{}{
 		"msg_type": "interactive",
@@ -40,7 +60,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": fmt.Sprintf("Backend Deployment - %s", branch),
+					"content": fmt.Sprintf("Backend Deployment on %s", branch), // เปลี่ยนชื่อหัวข้อ
 				},
 				"template": "blue",
 			},
@@ -77,7 +97,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": "**🌐 ENV**\n`DEV`",
+								"content": fmt.Sprintf("**🌐 ENV**\n`%s`", env),
 							},
 						},
 						{
