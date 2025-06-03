@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 )
 
+// Lark represents the Lark bot service with its webhook URL, App ID, and Secret.
 type Lark struct {
 	Webhook string
 	AppID   string
