@@ -92,7 +92,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 								"content": "View repo",
 								"tag":     "plain_text",
 							},
-							"url":  fmt.Sprintf("https://github.com/%s", event.Repository.Name),
+							"url":  event.Repository.HTMLURL, // ใช้ URL ที่ GitHub ส่งมาโดยตรง
 							"type": "default",
 						},
 					},
