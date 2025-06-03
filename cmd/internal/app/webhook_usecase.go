@@ -77,7 +77,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**🌿 Branch**\n`%s`", branch),
+								"content": fmt.Sprintf("**Branch**\n`%s`", branch),
 							},
 						},
 						{
@@ -96,14 +96,14 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**🌐 ENV**\n`%s`", env),
+								"content": fmt.Sprintf("**ENV**\n`%s`", env),
 							},
 						},
 						{
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**📦 Service**\n`%s`", event.Repository.Name),
+								"content": fmt.Sprintf("**Service**\n`%s`", event.Repository.Name),
 							},
 						},
 					},
