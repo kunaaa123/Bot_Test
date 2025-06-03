@@ -19,7 +19,9 @@ const (
 
 type GitHubPushEvent struct {
 	Repository struct {
-		Name string `json:"name"`
+		Name     string `json:"name"`
+		FullName string `json:"full_name"`
+		HTMLURL  string `json:"html_url"`
 	} `json:"repository"`
 	Commits []struct {
 		Message string `json:"message"`
@@ -135,6 +137,20 @@ func handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 					"text": map[string]interface{}{
 						"tag":     "lark_md",
 						"content": fmt.Sprintf("**Commit Message**\n• %s", lastCommit.Message),
+					},
+				},
+				{
+					"tag": "action",
+					"actions": []map[string]interface{}{
+						{
+							"tag": "button",
+							"text": map[string]interface{}{
+								"content": "ดู Repository 🔍",
+								"tag":     "plain_text",
+							},
+							"url":  pushEvent.Repository.HTMLURL,
+							"type": "primary",
+						},
 					},
 				},
 			},
