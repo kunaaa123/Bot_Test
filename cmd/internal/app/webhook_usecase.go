@@ -43,7 +43,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 		return err
 	}
 
-	imageKey, err := u.Lark.UploadImage("/github_logo.png", token)
+	imageKey, err := u.Lark.UploadImage("c:/Users/Singha/Desktop/Larkbot/github_logo.png", token)
 	if err != nil {
 		return err
 	}
