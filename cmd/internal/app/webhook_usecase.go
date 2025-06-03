@@ -60,7 +60,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": fmt.Sprintf("Backend Deployment on %s", branch), // เปลี่ยนชื่อหัวข้อ
+					"content": "Backend Deployment", // แก้ไขให้แสดงแค่ Backend Deployment
 				},
 				"template": "blue",
 			},
