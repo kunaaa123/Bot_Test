@@ -84,7 +84,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 							"is_short": true,
 							"text": map[string]interface{}{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**🤖 Deployer**\n%s", lastCommit.Author.Name),
+								"content": fmt.Sprintf("**Deployer**\n%s", lastCommit.Author.Name),
 							},
 						},
 					},
