@@ -24,8 +24,4 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
-<<<<<<< HEAD
 }
-=======
-}		
->>>>>>> 9c1d5c3b9b1c8b7b6b8b8b8b8b8b8b8b8b8b8b8b
