@@ -17,9 +17,15 @@ func NewWebhookHandler(usecase *app.WebhookUsecase) *WebhookHandler {
 
 func (h *WebhookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	var event domain.GitHubPushEvent
-	json.NewDecoder(r.Body).Decode(&event)
-	err := h.Usecase.HandleGitHubPush(event)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
+	if err := h.Usecase.HandleGitHubPush(event); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

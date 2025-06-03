@@ -3,6 +3,7 @@ package outbound
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -72,6 +73,17 @@ func (l *Lark) UploadImage(filePath string, token string) (string, error) {
 
 func (l *Lark) SendWebhookMessage(payload any) error {
 	payloadBytes, _ := json.Marshal(payload)
-	_, err := http.Post(l.Webhook, "application/json", bytes.NewBuffer(payloadBytes))
-	return err
+	resp, err := http.Post(l.Webhook, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("failed to send webhook: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// อ่าน response body เพื่อตรวจสอบ error
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("webhook failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
 }

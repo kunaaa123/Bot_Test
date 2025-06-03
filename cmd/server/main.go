@@ -4,6 +4,7 @@ import (
 	"larkbot/cmd/internal/adapter/inbound"
 	"larkbot/cmd/internal/adapter/outbound"
 	"larkbot/cmd/internal/app"
+	"log"
 	"net/http"
 )
 
@@ -18,5 +19,9 @@ func main() {
 	handler := inbound.NewWebhookHandler(usecase)
 
 	http.HandleFunc("/git-webhook", handler.Handle)
-	http.ListenAndServe(":8080", nil)
+
+	log.Printf("Server starting on :8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
