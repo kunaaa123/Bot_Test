@@ -30,3 +30,4 @@ func main() {
 // The current path is just an example and can be changed to suit your environment.
 // Ensure the image file exists at the specified path or update it to a valid path.
 // The Lark service will handle the upload and send the message to the specified webhook.
+// The webhook URL and credentials should be kept secure and not hard-coded in production code.
