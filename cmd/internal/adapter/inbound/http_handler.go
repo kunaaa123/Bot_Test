@@ -26,7 +26,6 @@ func (h *WebhookHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the received event data
 	log.Printf("Repository: %s, Commits count: %d", event.Repository.Name, len(event.Commits))
 
 	if err := h.Usecase.HandleGitHubPush(event); err != nil {

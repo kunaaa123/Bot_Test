@@ -43,14 +43,13 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 		return err
 	}
 
-	imageKey, err := u.Lark.UploadImage("c:/Users/Singha/Desktop/Larkbot/github_logo.png", token)
+	imageKey, err := u.Lark.UploadImage("./Larkbot/github_logo.png", token)
 	if err != nil {
 		return err
 	}
 
 	lastCommit := event.Commits[0]
 
-	// แปลง ref (refs/heads/main) เป็นชื่อ branch (main)
 	branch := strings.TrimPrefix(event.Ref, "refs/heads/")
 	env := getBranchEnvironment(branch)
 
@@ -60,7 +59,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 			"header": map[string]interface{}{
 				"title": map[string]interface{}{
 					"tag":     "plain_text",
-					"content": "Backend Deployment", // แก้ไขให้แสดงแค่ Backend Deployment
+					"content": "Backend Deployment",
 				},
 				"template": "blue",
 			},
@@ -116,7 +115,7 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 					"tag": "div",
 					"text": map[string]interface{}{
 						"tag":     "lark_md",
-						"content": fmt.Sprintf("**Commit Messages** 🤔\n• %s", lastCommit.Message),
+						"content": fmt.Sprintf("**Commit Messages** \n• %s", lastCommit.Message),
 					},
 				},
 				{
@@ -125,10 +124,10 @@ func (u *WebhookUsecase) HandleGitHubPush(event domain.GitHubPushEvent) error {
 						{
 							"tag": "button",
 							"text": map[string]interface{}{
-								"content": "View repo",
+								"content": "View Repository",
 								"tag":     "plain_text",
 							},
-							"url":  event.Repository.HTMLURL, // ใช้ URL ที่ GitHub ส่งมาโดยตรง
+							"url":  event.Repository.HTMLURL,
 							"type": "default",
 						},
 					},
