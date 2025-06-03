@@ -25,3 +25,5 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+// Note: The image upload path is flexible and can be adjusted as needed.
